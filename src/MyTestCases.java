@@ -1,6 +1,12 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import org.openqa.selenium.By;
@@ -16,15 +22,6 @@ import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-import org.w3c.dom.Attr;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.TypeInfo;
-import org.w3c.dom.UserDataHandler;
-import org.w3c.dom.html.HTMLBaseElement;
 
 public class MyTestCases {
 
@@ -32,9 +29,25 @@ public class MyTestCases {
 
 	String theURL = "https://codenboxautomationlab.com/practice/";
 
+	Connection con;
+
+	Statement stmt;
+
+	ResultSet rs;
+
+	String firstName;
+
+	String lastName;
+	String phone ; 
+	String customerName ; 
+	
+	Random rand = new Random(); 
+
 	@BeforeTest
 
-	public void myTestSetup() {
+	public void myTestSetup() throws SQLException {
+
+		con = DriverManager.getConnection("jdbc:mysql://localhost:3306/classicmodels", "root", "abed");
 
 		driver.get(theURL);
 
@@ -192,56 +205,80 @@ public class MyTestCases {
 		System.out.println(TheElementWeNeedToHide.isDisplayed());
 
 	}
-	
+
 	@Test(enabled = false)
 	public void EnableAndDsiable() {
-		
+
 		driver.findElement(By.id("disabled-button")).click();
-		
-		
+
 		System.out.println(driver.findElement(By.id("enabled-example-input")).isEnabled());
-		
+
 		driver.findElement(By.id("enabled-button")).click();
 		System.out.println(driver.findElement(By.id("enabled-example-input")).isEnabled());
 
-
 	}
-	
+
 	@Test(enabled = false)
-	public void MouseHover () throws InterruptedException {
-		
+	public void MouseHover() throws InterruptedException {
+
 		JavascriptExecutor js = (JavascriptExecutor) driver;
 
 		js.executeScript("window.scrollTo(0,1900)");
 
 		Thread.sleep(4000);
 		WebElement TheHoverElement = driver.findElement(By.id("mousehover"));
-		
-		Actions action = new Actions(driver); 
-		
-		
-		action.moveToElement(TheHoverElement).build().perform();;
-		
-		//driver.findElement(By.linkText("Top")).click();
+
+		Actions action = new Actions(driver);
+
+		action.moveToElement(TheHoverElement).build().perform();
+		;
+
+		// driver.findElement(By.linkText("Top")).click();
 
 		driver.findElement(By.linkText("Reload")).click();
-		
+
 	}
-	
+
 	@Test
-	public void Calender() {
-		
+	public void Calender() throws InterruptedException, SQLException {
+
 		driver.findElement(By.linkText("Booking Calendar")).click();
-		
+
 		Set<String> handles = driver.getWindowHandles();
 
 		List<String> allTabs = new ArrayList<>(handles);
 
 		driver.switchTo().window(allTabs.get(1));
-		
+
 		driver.findElement(By.linkText("25")).click();
+		Thread.sleep(3000);
+		
+	int randomId = 	rand.nextInt(144,147);
+
+		String QueryToRead = "select * from customers where customerNumber="+randomId;
+
+		stmt = con.createStatement();
+
+		rs = stmt.executeQuery(QueryToRead);
+
+		while (rs.next()) {
+
+			firstName = rs.getString("contactFirstName");
+			lastName = rs.getString("contactLastName");
+			
+			phone = rs.getString("phone"); 
+			customerName= rs.getString("customerName");
+		}
+		
+		int RandomNumber = rand.nextInt(6000);
+		driver.findElement(By.id("name1")).sendKeys(firstName);
+		driver.findElement(By.id("secondname1")).sendKeys(lastName);
+		driver.findElement(By.id("email1")).sendKeys(firstName+lastName+RandomNumber+"@gmail.com");
+		driver.findElement(By.id("phone1")).sendKeys(phone);
+
+		driver.findElement(By.id("details1")).sendKeys(customerName);
+
+
 	}
-	
-	
 
 }
