@@ -6,8 +6,7 @@
       <class name="MyTestCases">
         <methods>
           <include name="myTestSetup"/>
-          <include name="myTest"/>
-          <include name="AfterTestIsDone"/>
+          <include name="TakeAscreenShot"/>
         </methods>
       </class> <!-- MyTestCases -->
     </classes>

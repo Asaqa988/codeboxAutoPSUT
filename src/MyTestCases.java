@@ -1,3 +1,5 @@
+import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -5,13 +7,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -34,14 +40,15 @@ public class MyTestCases {
 	Statement stmt;
 
 	ResultSet rs;
-
 	String firstName;
 
 	String lastName;
-	String phone ; 
-	String customerName ; 
-	
-	Random rand = new Random(); 
+	String phone;
+	String customerName;
+
+	int randomID;
+
+	Random rand = new Random();
 
 	@BeforeTest
 
@@ -54,6 +61,7 @@ public class MyTestCases {
 		driver.manage().window().maximize();
 
 		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(3));
+
 	}
 
 	@Test(enabled = false)
@@ -239,8 +247,43 @@ public class MyTestCases {
 
 	}
 
-	@Test
-	public void Calender() throws InterruptedException, SQLException {
+	@Test(priority = 1)
+
+	public void addData() throws SQLException {
+
+		randomID = rand.nextInt(5353, 6010);
+
+		String QueryToAddData = "INSERT INTO customers (" + "customerNumber, " + "customerName, " + "contactLastName, "
+				+ "contactFirstName, " + "phone, " + "addressLine1, " + "addressLine2, " + "city, " + "state, "
+				+ "postalCode, " + "country, " + "salesRepEmployeeNumber, " + "creditLimit" + ") VALUES (" + randomID
+				+ "," + "'Tech Solutions Ltd.', " + "'Smith', " + "'John', " + "'+1 800 555 1234', "
+				+ "'123 Tech Park', " + "'Suite 400', " + "'San Francisco', " + "'CA', " + "'94107', " + "'USA', "
+				+ "1166, " + "100000.00" + ");";
+
+		stmt = con.createStatement();
+
+		int rowInserted = stmt.executeUpdate(QueryToAddData);
+
+		System.out.println(rowInserted);
+
+	}
+
+	@Test(priority = 2)
+	public void updateData() throws SQLException {
+
+		String QueryToUpdate = "UPDATE customers\r\n" + "SET contactFirstName = 'abedalraheem',\r\n"
+				+ "    contactLastName = 'alsaka'\r\n" + "WHERE customerNumber = " + randomID;
+
+		stmt = con.createStatement();
+
+		int rowInserted = stmt.executeUpdate(QueryToUpdate);
+
+		System.out.println(rowInserted);
+
+	}
+
+	@Test(priority = 3)
+	public void Calender() throws InterruptedException, SQLException, IOException {
 
 		driver.findElement(By.linkText("Booking Calendar")).click();
 
@@ -252,10 +295,10 @@ public class MyTestCases {
 
 		driver.findElement(By.linkText("25")).click();
 		Thread.sleep(3000);
-		
-	int randomId = 	rand.nextInt(144,147);
 
-		String QueryToRead = "select * from customers where customerNumber="+randomId;
+		int randomId = rand.nextInt(144, 147);
+
+		String QueryToRead = "select * from customers where customerNumber=" + randomId;
 
 		stmt = con.createStatement();
 
@@ -265,20 +308,74 @@ public class MyTestCases {
 
 			firstName = rs.getString("contactFirstName");
 			lastName = rs.getString("contactLastName");
-			
-			phone = rs.getString("phone"); 
-			customerName= rs.getString("customerName");
+
+			phone = rs.getString("phone");
+			customerName = rs.getString("customerName");
 		}
-		
+
 		int RandomNumber = rand.nextInt(6000);
 		driver.findElement(By.id("name1")).sendKeys(firstName);
 		driver.findElement(By.id("secondname1")).sendKeys(lastName);
-		driver.findElement(By.id("email1")).sendKeys(firstName+lastName+RandomNumber+"@gmail.com");
+		driver.findElement(By.id("email1")).sendKeys(firstName + lastName + RandomNumber + "@gmail.com");
 		driver.findElement(By.id("phone1")).sendKeys(phone);
 
 		driver.findElement(By.id("details1")).sendKeys(customerName);
+		System.out.println(randomID);
+		
+		driver.navigate().to("https://www.booking.com");
 
+		TakeAscreenShot();
+		
+		Thread.sleep(2000);
 
 	}
 
+	@Test(priority = 4, enabled = true)
+	public void DeleteData() throws SQLException, IOException, InterruptedException {
+
+		System.out.println(randomID);
+
+		String QueryToDelete = "DELETE FROM customers\r\n" + "WHERE customerNumber = " + randomID;
+
+		stmt = con.createStatement();
+
+		int rowInserted = stmt.executeUpdate(QueryToDelete);
+
+		System.out.println(rowInserted);
+		
+		driver.navigate().to("https://www.yahoo.com");
+		TakeAscreenShot();
+		
+		Thread.sleep(2000);
+
+	}
+
+	@Test(priority = 5, invocationCount = 1)
+	public void TakeAscreenShot() throws IOException, InterruptedException {
+
+		Date timestamp = new Date();
+		Thread.sleep(2000);
+
+		System.out.println(timestamp);
+		String newtimestamp = timestamp.toString().replace(":", "-");
+
+		TakesScreenshot ts = (TakesScreenshot) driver;
+		 JavascriptExecutor js = (JavascriptExecutor) driver ;
+		File file = ts.getScreenshotAs(OutputType.FILE);
+		FileUtils.copyFile(file, new File("./ScreenShot_Folder/" + newtimestamp + ".jpg"));
+
+		
+		Date timestamp2 = new Date();
+		Thread.sleep(2000);
+
+		System.out.println(timestamp2);
+		String newtimestamp2 = timestamp2.toString().replace(":", "-");
+		
+		
+		js.executeScript("window.scrollTo(0,600)");
+		File file2 = ts.getScreenshotAs(OutputType.FILE);
+		FileUtils.copyFile(file2, new File("./ScreenShot_Folder/" + newtimestamp2 + ".jpg"));
+
+		
+	}
 }
